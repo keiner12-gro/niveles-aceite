@@ -54,12 +54,12 @@ jobs:
             mv "$SDK_ROOT/cmdline-tools/cmdline-tools" "$SDK_ROOT/cmdline-tools/latest"
             rm cmdline-tools.zip
           fi
-          # bubblewrap busca sdkmanager en <sdk>/bin o <sdk>/tools/bin (layout antiguo del SDK),
-          # así que enlazamos ahí el cmdline-tools moderno (symlink, para que sus rutas relativas
-          # a ../lib sigan resolviendo bien vía readlink -f).
-          [ -e "$SDK_ROOT/bin" ] || ln -s "$SDK_ROOT/cmdline-tools/latest/bin" "$SDK_ROOT/bin"
-          yes | "$SDK_ROOT/bin/sdkmanager" --sdk_root="$SDK_ROOT" --licenses > /dev/null
-          "$SDK_ROOT/bin/sdkmanager" --sdk_root="$SDK_ROOT" "platform-tools" "platforms;android-36" "build-tools;36.1.0" > /dev/null
+          yes | "$SDK_ROOT/cmdline-tools/latest/bin/sdkmanager" --sdk_root="$SDK_ROOT" --licenses > /dev/null
+          "$SDK_ROOT/cmdline-tools/latest/bin/sdkmanager" --sdk_root="$SDK_ROOT" "platform-tools" "platforms;android-36" "build-tools;36.1.0" > /dev/null
+          # bubblewrap solo valida que exista <sdk>/bin o <sdk>/tools (layout antiguo del SDK);
+          # como build-tools/platforms ya quedaron instalados arriba, nunca llega a invocar un
+          # sdkmanager real desde esa carpeta, así que basta con que exista.
+          mkdir -p "$SDK_ROOT/bin"
           echo "ANDROID_HOME=$SDK_ROOT" >> "$GITHUB_ENV"
           echo "ANDROID_SDK_ROOT=$SDK_ROOT" >> "$GITHUB_ENV"
 

@@ -1,0 +1,97 @@
+name: Build APK Android
+
+on:
+  push:
+    branches: [master]
+    paths-ignore:
+      - "**.md"
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+jobs:
+  build-apk:
+    runs-on: ubuntu-latest
+    env:
+      PWA_MANIFEST_URL: https://keiner12-gro.github.io/niveles-aceite/manifest.json
+      TWA_PACKAGE_ID: org.nivelesaceite.app
+      APP_VERSION_CODE: ${{ github.run_number }}
+      BUBBLEWRAP_KEYSTORE_PASSWORD: ${{ secrets.BUBBLEWRAP_KEYSTORE_PASSWORD }}
+      BUBBLEWRAP_KEY_PASSWORD: ${{ secrets.BUBBLEWRAP_KEY_PASSWORD }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configurar JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Configurar Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Cachear Android SDK y Gradle
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/android-sdk
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: android-sdk-gradle-${{ runner.os }}-v1
+
+      - name: Instalar Android SDK command-line tools
+        run: |
+          set -e
+          SDK_ROOT="$HOME/android-sdk"
+          if [ ! -d "$SDK_ROOT/cmdline-tools/latest" ]; then
+            mkdir -p "$SDK_ROOT/cmdline-tools"
+            curl -sSL -o cmdline-tools.zip "https://dl.google.com/android/repository/commandlinetools-linux-15859902_latest.zip"
+            unzip -q cmdline-tools.zip -d "$SDK_ROOT/cmdline-tools"
+            mv "$SDK_ROOT/cmdline-tools/cmdline-tools" "$SDK_ROOT/cmdline-tools/latest"
+            rm cmdline-tools.zip
+          fi
+          yes | "$SDK_ROOT/cmdline-tools/latest/bin/sdkmanager" --licenses > /dev/null
+          "$SDK_ROOT/cmdline-tools/latest/bin/sdkmanager" "platform-tools" "platforms;android-34" "build-tools;34.0.0" > /dev/null
+          echo "ANDROID_HOME=$SDK_ROOT" >> "$GITHUB_ENV"
+          echo "ANDROID_SDK_ROOT=$SDK_ROOT" >> "$GITHUB_ENV"
+
+      - name: Instalar dependencias de build (bubblewrap)
+        run: npm ci --prefix ci
+
+      - name: Configurar bubblewrap (sin prompts)
+        run: |
+          mkdir -p ~/.bubblewrap
+          printf '{"jdkPath":"%s","androidSdkPath":"%s"}' "$JAVA_HOME" "$ANDROID_HOME" > ~/.bubblewrap/config.json
+
+      - name: Generar proyecto Android (TWA) desde el manifest publicado
+        run: node ci/generate-twa.js
+
+      - name: Compilar y firmar APK
+        working-directory: android
+        run: ../ci/node_modules/.bin/bubblewrap build
+
+      - name: Renombrar artefacto
+        run: cp "android/app-release-signed.apk" "niveles-aceite.apk"
+
+      - name: Subir APK como artifact del workflow
+        uses: actions/upload-artifact@v4
+        with:
+          name: niveles-aceite-apk
+          path: niveles-aceite.apk
+          retention-days: 30
+
+      - name: Publicar / actualizar release de prueba
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: apk-preview
+          name: "Niveles de Aceite — APK de prueba"
+          body: |
+            APK de prueba generado automáticamente desde `master` (build #${{ github.run_number }}).
+            Instálalo en un Android con "Instalar apps de fuentes desconocidas" habilitado.
+            No es un release oficial de Play Store.
+          files: niveles-aceite.apk
+          make_latest: true

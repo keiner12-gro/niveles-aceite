@@ -1,0 +1,10 @@
+# Proyecto Android generado por bubblewrap en CI (no se versiona, se regenera en cada build)
+/android/
+
+# Dependencias de las herramientas de build (package-lock.json SÍ se versiona, para `npm ci`)
+/ci/node_modules/
+
+# Artefactos de build
+*.apk
+*.aab
+*.keystore

@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1" />
+<title>Niveles de Aceite</title>
+<meta name="description" content="Revisión y recuperación de niveles de aceite en equipos de planta" />
+<meta name="theme-color" content="#123a5e" />
+<link rel="manifest" href="manifest.json" />
+<link rel="icon" href="icons/icon-192.png" />
+<link rel="apple-touch-icon" href="icons/icon-192.png" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<link rel="stylesheet" href="style.css" />
+</head>
+<body>
+<div id="app">
+  <header class="app-header" id="header"></header>
+  <main id="main"></main>
+  <nav class="bottom-nav" id="bottom-nav">
+    <button data-vista="inicio"><span class="ico">🏠</span>Inicio</button>
+    <button data-vista="ruta"><span class="ico">🛣️</span>Ruta</button>
+    <button data-vista="historial"><span class="ico">📋</span>Historial</button>
+    <button data-vista="informes"><span class="ico">📄</span>Informe</button>
+  </nav>
+</div>
+<div id="toast" class="toast"></div>
+<div id="overlay-root"></div>
+
+<!-- input oculto para capturar fotos con la cámara del dispositivo -->
+<input type="file" id="foto-input" accept="image/*" capture="environment" style="display:none" />
+
+<script src="vendor/xlsx.full.min.js"></script>
+<script src="vendor/jspdf.umd.min.js"></script>
+<script src="vendor/jspdf.plugin.autotable.min.js"></script>
+<script src="data.js"></script>
+<script src="db.js"></script>
+<script src="report.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

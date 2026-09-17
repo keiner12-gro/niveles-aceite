@@ -425,40 +425,40 @@ function bloqueConNovedad(d) {
   box.querySelector("#cam-no").onclick = () => { d.cambio = "NO"; render(); };
   box.querySelector("#cam-si").onclick = () => { d.cambio = "SI"; render(); };
 
-  const necesitaIntervencion = d.seRecupera === "SI" || d.cambio === "SI";
+  // La foto DESPUÉS y los datos de la intervención siempre se piden cuando
+  // hay novedad (así lo marca el diagrama de flujo original), independiente
+  // de las respuestas de "se recupera"/"cambio".
   const cont = box.querySelector("#bloque-intervencion");
-  if (necesitaIntervencion) {
-    cont.appendChild(el(`<div>
-      <hr class="sep" />
-      <div style="display:flex; gap:10px">
-        <label class="campo" style="flex:1.4">
-          <span class="txt">Cantidad de aceite</span>
-          <input type="number" min="0" step="0.1" id="f-cant" value="${d.cantidadAceite || ""}" placeholder="0.0" />
-        </label>
-        <label class="campo" style="flex:1">
-          <span class="txt">Unidad</span>
-          <select id="f-unidad">
-            <option value="L" ${d.unidadAceite === "L" ? "selected" : ""}>Litros</option>
-            <option value="ml" ${d.unidadAceite === "ml" ? "selected" : ""}>ml</option>
-            <option value="gal" ${d.unidadAceite === "gal" ? "selected" : ""}>Galones</option>
-          </select>
-        </label>
-      </div>
-      <label class="campo">
-        <span class="txt">Tipo de aceite utilizado</span>
-        <select id="f-tipo-aceite">
-          <option value="">Selecciona...</option>
-          ${TIPOS_ACEITE.map(t => `<option value="${t}" ${d.tipoAceite === t ? "selected" : ""}>${t}</option>`).join("")}
+  cont.appendChild(el(`<div>
+    <hr class="sep" />
+    <div style="display:flex; gap:10px">
+      <label class="campo" style="flex:1.4">
+        <span class="txt">Cantidad de aceite</span>
+        <input type="number" min="0" step="0.1" id="f-cant" value="${d.cantidadAceite || ""}" placeholder="0.0" />
+      </label>
+      <label class="campo" style="flex:1">
+        <span class="txt">Unidad</span>
+        <select id="f-unidad">
+          <option value="L" ${d.unidadAceite === "L" ? "selected" : ""}>Litros</option>
+          <option value="ml" ${d.unidadAceite === "ml" ? "selected" : ""}>ml</option>
+          <option value="gal" ${d.unidadAceite === "gal" ? "selected" : ""}>Galones</option>
         </select>
       </label>
-      <div class="seccion-titulo">📷 Foto DESPUÉS</div>
-      ${fotoBoxHTML(d.fotoDespues, "foto-despues", "Foto mostrando el nivel recuperado")}
-    </div>`));
-    cont.querySelector("#f-cant").oninput = e => d.cantidadAceite = e.target.value;
-    cont.querySelector("#f-unidad").onchange = e => d.unidadAceite = e.target.value;
-    cont.querySelector("#f-tipo-aceite").onchange = e => d.tipoAceite = e.target.value;
-    cont.querySelector("#foto-despues").onclick = () => tomarFoto("despues");
-  }
+    </div>
+    <label class="campo">
+      <span class="txt">Tipo de aceite utilizado</span>
+      <select id="f-tipo-aceite">
+        <option value="">Selecciona...</option>
+        ${TIPOS_ACEITE.map(t => `<option value="${t}" ${d.tipoAceite === t ? "selected" : ""}>${t}</option>`).join("")}
+      </select>
+    </label>
+    <div class="seccion-titulo">📷 Foto DESPUÉS</div>
+    ${fotoBoxHTML(d.fotoDespues, "foto-despues", "Foto mostrando el nivel recuperado")}
+  </div>`));
+  cont.querySelector("#f-cant").oninput = e => d.cantidadAceite = e.target.value;
+  cont.querySelector("#f-unidad").onchange = e => d.unidadAceite = e.target.value;
+  cont.querySelector("#f-tipo-aceite").onchange = e => d.tipoAceite = e.target.value;
+  cont.querySelector("#foto-despues").onclick = () => tomarFoto("despues");
 
   return box;
 }
@@ -486,8 +486,7 @@ async function guardarInspeccion() {
   if (d.novedad === true) {
     if (!d.fotoAntes) return toast("⚠️ Toma la foto ANTES");
     if (!d.tipoNovedad) return toast("⚠️ Selecciona el tipo de novedad");
-    const necesitaIntervencion = d.seRecupera === "SI" || d.cambio === "SI";
-    if (necesitaIntervencion && !d.fotoDespues) return toast("⚠️ Toma la foto DESPUÉS de la intervención");
+    if (!d.fotoDespues) return toast("⚠️ Toma la foto DESPUÉS de la intervención");
   }
 
   const record = {

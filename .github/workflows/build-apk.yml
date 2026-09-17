@@ -19,6 +19,7 @@ jobs:
       APP_VERSION_CODE: ${{ github.run_number }}
       BUBBLEWRAP_KEYSTORE_PASSWORD: ${{ secrets.BUBBLEWRAP_KEYSTORE_PASSWORD }}
       BUBBLEWRAP_KEY_PASSWORD: ${{ secrets.BUBBLEWRAP_KEY_PASSWORD }}
+      ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -77,6 +78,10 @@ jobs:
       - name: Compilar y firmar APK
         working-directory: android
         run: ../ci/node_modules/.bin/bubblewrap build
+
+      - name: Verificar fingerprint de la firma (debe coincidir con assetlinks.json)
+        run: |
+          "$JAVA_HOME/bin/keytool" -list -v -keystore android/android.keystore -alias nivelesaceite -storepass "$BUBBLEWRAP_KEYSTORE_PASSWORD" | grep "SHA256:"
 
       - name: Renombrar artefacto
         run: cp "android/app-release-signed.apk" "niveles-aceite.apk"

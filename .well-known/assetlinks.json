@@ -1,0 +1,12 @@
+[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "org.nivelesaceite.app",
+      "sha256_cert_fingerprints": [
+        "81:F9:29:72:6A:06:DB:F1:AA:75:FE:72:A9:20:45:AD:12:C0:60:50:C4:6E:D6:13:ED:EA:DC:F0:0A:2A:23:D1"
+      ]
+    }
+  }
+]

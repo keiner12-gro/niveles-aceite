@@ -1,9 +1,13 @@
 // Genera el proyecto Android (Trusted Web Activity) a partir del manifest.json
 // publicado en GitHub Pages, sin prompts interactivos, para correr dentro de
 // GitHub Actions. Requiere que ~/.bubblewrap/config.json ya tenga jdkPath y
-// androidSdkPath configurados (ver .github/workflows/build-apk.yml) y que
-// BUBBLEWRAP_KEYSTORE_PASSWORD / BUBBLEWRAP_KEY_PASSWORD estén en el entorno
-// para crear la llave de firma la primera vez.
+// androidSdkPath configurados (ver .github/workflows/build-apk.yml).
+//
+// La llave de firma debe ser SIEMPRE la misma entre builds (si no, el
+// fingerprint SHA256 no coincide con .well-known/assetlinks.json y Android
+// deja de mostrar la app en pantalla completa, cayendo a la barra de
+// navegador). Por eso, si ANDROID_KEYSTORE_BASE64 está presente, se decodifica
+// a disco; solo se genera una llave nueva si no existe ninguna (bootstrap).
 
 const path = require("path");
 const fs = require("fs");
@@ -54,7 +58,13 @@ async function main() {
     return;
   }
 
+  if (!fs.existsSync(twaManifest.signingKey.path) && process.env.ANDROID_KEYSTORE_BASE64) {
+    fs.writeFileSync(twaManifest.signingKey.path, Buffer.from(process.env.ANDROID_KEYSTORE_BASE64, "base64"));
+    log.info("Llave de firma restaurada desde ANDROID_KEYSTORE_BASE64 (llave estable persistida).");
+  }
+
   if (!fs.existsSync(twaManifest.signingKey.path)) {
+    log.info("No hay llave de firma persistida: generando una nueva (bootstrap).");
     const configPath = path.join(os.homedir(), ".bubblewrap", "config.json");
     const config = await Config.loadConfig(configPath);
     const jdkHelper = new JdkHelper(process, config);
